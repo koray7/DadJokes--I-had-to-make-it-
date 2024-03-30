@@ -1,12 +1,16 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import dotenv from "dotenv";
+
+dotenv.config();
+const dbPassword = process.env.DB_PASSWORD;
 
 const db = new pg.Client({
   user: "postgres",
   host: "localhost",
-  database: "world",
-  password: "730210kK",
+  database: "dadjokes",
+  password: dbPassword,
   port: 5434,
 });
 
@@ -16,20 +20,15 @@ const port = 3000;
 db.connect();
 
 let quiz = [];
-db.query("SELECT * FROM capitals", (err, res) => {
+db.query("SELECT * FROM dadjokestable", (err, res) => {
   if (err) {
     console.error("Error executing query", err.stack);
+    return;
   } else {
     quiz = res.rows;
   }
   db.end();
 });
-//TEST
-// let quiz = [
-//   { country: "France", capital: "Paris" },
-//   { country: "United Kingdom", capital: "London" },
-//   { country: "United States of America", capital: "New York" },
-// ];
 
 let totalCorrect = 0;
 
@@ -51,7 +50,7 @@ app.get("/", async (req, res) => {
 app.post("/submit", (req, res) => {
   let answer = req.body.answer.trim();
   let isCorrect = false;
-  if (currentQuestion.capital.toLowerCase() === answer.toLowerCase()) {
+  if (currentQuestion.answer.toLowerCase() === answer.toLowerCase()) {
     totalCorrect++;
     console.log(totalCorrect);
     isCorrect = true;
@@ -66,9 +65,9 @@ app.post("/submit", (req, res) => {
 });
 
 async function nextQuestion() {
-  const randomCountry = quiz[Math.floor(Math.random() * quiz.length)];
+  const randomJokes = quiz[Math.floor(Math.random() * quiz.length)];
 
-  currentQuestion = randomCountry;
+  currentQuestion = randomJokes;
 }
 
 app.listen(port, () => {
